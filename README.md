@@ -1,5 +1,5 @@
-# Hi, I’m Lucas Sampaio  👋
-- 📊 I’m from Brazil and i'm interested in Data Science, Machine Learning, Text Mining and related subjects.
+# Hello, folks!  👋
+- 📊 My name is Lucas Sampaio and I'm a Data Scientist from Brazil. I'm interested in Data Science, Machine Learning, Text Mining and related subjects.
 
 ## 🔧 Technologies & Tools
 ![Python](https://img.shields.io/badge/-Python-black?style=flat-square&logo=Python)
