@@ -1,5 +1,5 @@
 # Hello, good to see you here!  👋
-- 📊 My name is Lucas Sampaio and I'm a Data Scientist from Brazil. I'm interested and pursue in developing projects in Data Science, Machine Learning, Text Mining and related subjects.
+- 📊 My name is Lucas Sampaio and I'm a Data Scientist from Brazil. I'm interested and pursue in developing projects in Data Science, Machine Learning, Text Mining, Spatial Technologies and related subjects.
 
 ## 🔧 Technologies & Tools
 ![Python](https://img.shields.io/badge/-Python-black?style=flat-square&logo=Python)
@@ -7,6 +7,7 @@
 ![Hadoop](https://img.shields.io/badge/-Hadoop-yellow?style=flat-square&logo=Hadoop)
 ![Oracle](https://img.shields.io/badge/-Oracle-red?style=flat-square&logo=Oracle)
 ![MySQL](https://img.shields.io/badge/-MySQL-black?style=flat-square&logo=mysql)
+![MongoDB](https://img.shields.io/badge/-MongoDB-black?style=flat-square&logo=mongodb)
 ![](https://img.shields.io/badge/Editor-VS_Code-informational?style=flat&logo=visual-studio-code&logoColor=white&color=6aa6f8)
 ![](https://img.shields.io/badge/Editor-Jupyter-informational?style=flat&logo=jupyter&logoColor=white&color=6aa6f8)
 ![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat-square&logo=github)
