@@ -7,7 +7,7 @@
 
 <!---- 📝 I regulary write articles on [![Blog](https://img.shields.io/badge/-reishin.me-FF4088?style=for-the-badge&logo=Hugo&logoColor=ffffff)](https://reishin.me)--->
 
-- 📫 How to reach me [![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:lucsampaioime@gmail.com)
+- 📫 How to reach me[![Gmail Badge](https://img.shields.io/badge/-gmail-c14438?style=for-the-badge&logo=Gmail&logoColor=ffffff)](mailto:lucsampaioime@gmail.com)
 
 ## 🔧 Technologies & Tools
 ![Python](https://img.shields.io/badge/-Python-black?style=flat-square&logo=Python)
