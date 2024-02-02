@@ -1,0 +1,10 @@
+Mostre um código em python para implementação do NMF com as considerações:
+
+- o dataset de entrada é do formato .csv e é uma coleção de documentos, onde cada linha é um documento, onde cada documento possui uma sequência de palavras separados por espaço, compondo a coluna 'Text', e no final, separado por uma vírgula, a classe daquele conjunto de palavras, compondo a coluna 'Class' contendo a classe daquele documento. 
+- um exemplo de linha do dataset é: mention note result circuit circuit circuit class hold complex nonuniform uniform analog,Theory
+- Utilize o Multiplicative Update para realizar a atualização de ajuste das matrizes de decomposição W e H.
+- A matriz documento-palavra será a matrix V, com d linhas e t colunas. A matriz W terá d linhas e k colunas (matriz documento-tópico) e a matriz H terá k linhas e t colunas (matriz tópico-palavra).
+- Defina uma classe para ser a classe positiva e as outras classes serão negativas. Dentro da classe positiva, um número n_labeled de documentos serão rotulados. O restante dos documentos da classe positiva serão não rotulados, e os documentos das outras classes serão não-rotulados também.
+- Desejamos forçar que, a cada iteração, para os documentos rotulados, na matriz W, o primeiro valor, ou seja na primeira posição da linha d(i), seja o maior valor da matriz W inteira, e o restante dos valores da linha para aquele documento seja de 0.001.
+- Deve-se usar a divergência euclidiana para calcular o erro  de aproximação, dado pela diferença entre V e a aproximação produzida por W e H. Mostrar o valor do erro a cada iteração.
+- Adicionar no final de cada iteração o cálculo de acurácia, precisão, recall e f1 score, considerando os valores iniciais das classes do dataset original e os valores extraídos das matrizes W e H ao final das iterações
