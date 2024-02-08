@@ -159,7 +159,7 @@ def train_unsupervised(V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_
 
         # Emphasize the positive class in H before NNLS, if indices are provided
         if positive_class_indices is not None:
-            adjustment_factor = 1.0  # Define your adjustment factor here
+            adjustment_factor = 1000  # Define your adjustment factor here
 
         # NNLS
         w_arrays = [nnls(out.data.numpy(), V_train_tns[:, f].numpy())[0]
