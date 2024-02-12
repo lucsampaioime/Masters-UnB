@@ -159,7 +159,8 @@ def train_unsupervised(V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_
 
         # Emphasize the positive class in H before NNLS, if indices are provided
         if positive_class_indices is not None:
-            adjustment_factor = 1000  # Define your adjustment factor here
+            adjustment_factor = 1000000000  # Define your adjustment factor here
+            out.data[positive_class_indices, :] += adjustment_factor
 
         # NNLS
         w_arrays = [nnls(out.data.numpy(), V_train_tns[:, f].numpy())[0]
@@ -228,7 +229,7 @@ def main():
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 1  # Or get this from user input
+    n_labeled = 1  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
