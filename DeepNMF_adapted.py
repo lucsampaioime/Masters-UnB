@@ -237,18 +237,12 @@ def main():
 
     n_samples, n_features = V.shape
     n_components = 20  # You can define this based on your needs
-    print("Shape of V after processing CSV:", V.shape)
-    print(n_features)
-    print(n_samples)
 
     V = V.transpose()
-    print("Shape of V after transpose:", V.shape)
 
     # Initialize W and H with random values
     W = np.random.rand(n_features, n_components)
     H = np.random.rand(n_components, n_samples)
-    print("Shape of W:", W.shape)
-    print("Shape of H:", H.shape)
 
     # Prepare data (split and convert to tensors)
     V_train, V_test, H_train, H_test, V_train_tns, V_test_tns, H_train_tns, H_test_tns = build_data(
@@ -274,12 +268,9 @@ def main():
     print("Reconstruction Error:", error)
 
     V = V.transpose()
-    print("Shape of V after transpose 2:", V.shape)
 
     W_x = H.transpose()
-    print("Shape of W after transpose 2:", W_x.shape)
     H_x = W.transpose()
-    print("Shape of H after transpose 2:", H_x.shape)
 
     # Determina qual tópico é o mais representativo para a classe positiva [usar uma das opções abaixo]
     positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
