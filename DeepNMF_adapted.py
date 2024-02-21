@@ -272,7 +272,7 @@ def main():
     W_x = H.transpose()
     H_x = W.transpose()
 
-    # Determina qual tópico é o mais representativo para a classe positiva [usar uma das opções abaixo]
+    # Determina qual tópico é o mais representativo para a classe positiva[usar uma das opções abaixo]
     positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
     # positive_class_index = 0
 
