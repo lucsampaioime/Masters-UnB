@@ -76,29 +76,15 @@ def tensoring(X):
     return torch.from_numpy(X).float()
 
 
-def build_data(V, W, H, TRAIN_SIZE=0.80, index=None):
-    # Split the data into training and testing sets
-    samples = V.shape[1]
-    if index is None:
-        mask = np.random.rand(samples) < TRAIN_SIZE
-    else:
-        mask = index
+def build_data(V, H):
 
-    V_train = V[:, mask]
-    V_test = V[:, ~mask]
-    H_train = H[:, mask]
-    H_test = H[:, ~mask]
+    V_tns = torch.from_numpy(V.T).float()
+    H_tns = torch.from_numpy(H.T).float()
 
-    # Convert numpy arrays to torch tensors
-    V_train_tns = torch.from_numpy(V_train.T).float()
-    V_test_tns = torch.from_numpy(V_test.T).float()
-    H_train_tns = torch.from_numpy(H_train.T).float()
-    H_test_tns = torch.from_numpy(H_test.T).float()
-
-    return V_train, V_test, H_train, H_test, V_train_tns, V_test_tns, H_train_tns, H_test_tns
+    return V_tns, H_tns
 
 
-def train_unsupervised(V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_tns, num_layers, network_train_iterations, n_components, features, lr=0.0005, l_1=0, l_2=0, verbose=False, include_reg=True, positive_class_indices=None):
+def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, features, lr=0.0005, l_1=0, l_2=0, verbose=False, include_reg=True, positive_class_indices=None):
     """
     Train the unsupervised deep NMF model.
 
@@ -134,15 +120,12 @@ def train_unsupervised(V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_
     optimizerADAM = torch.optim.Adam(deep_nmf.parameters(), lr=lr)
 
     # Train the Network
-    inputs = (H_train_tns, V_train_tns)
-    test = (H_test_tns, V_test_tns)
-    dnmf_train_cost = []
-    dnmf_test_cost = []
+    inputs = (H_tns, V_tns)
+    dnmf_cost = []
 
     for i in range(network_train_iterations):
         out = deep_nmf(*inputs)
-        test_out = deep_nmf(*test)
-        loss = cost_tns(V_train_tns, dnmf_w, out, l_1, l_2)
+        loss = cost_tns(V_tns, dnmf_w, out, l_1, l_2)
 
         if verbose:
             print(i, loss.item())
@@ -171,18 +154,18 @@ def train_unsupervised(V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_
                 out.data[:, idx] = highest_value
 
         # NNLS
-        w_arrays = [nnls(out.data.numpy(), V_train_tns[:, f].numpy())[0]
+        w_arrays = [nnls(out.data.numpy(), V_tns[:, f].numpy())[0]
                     for f in range(features)]
         nnls_w = np.stack(w_arrays, axis=-1)
         dnmf_w = torch.from_numpy(nnls_w).float()
 
-        dnmf_train_cost.append(loss.item())
+        dnmf_cost.append(loss.item())
 
         # Test performance
-        dnmf_test_cost.append(
-            cost_tns(V_test_tns, dnmf_w, test_out, l_1, l_2).item())
+        dnmf_cost.append(
+            cost_tns(V_tns, dnmf_w, h_out, l_1, l_2).item())
 
-    return deep_nmf, dnmf_train_cost, dnmf_test_cost, dnmf_w
+    return deep_nmf, dnmf_cost, dnmf_w
 
 
 def read_and_process_csv(file_path):
@@ -253,8 +236,7 @@ def main():
     H = np.random.rand(n_components, n_samples)
 
     # Prepare data (split and convert to tensors)
-    V_train, V_test, H_train, H_test, V_train_tns, V_test_tns, H_train_tns, H_test_tns = build_data(
-        V, W, H)
+    V_tns, H_tns = build_data(V, H)
 
     # Convert W to tensor
     W_init_tns = torch.from_numpy(W.T).float()
@@ -266,9 +248,12 @@ def main():
     l_1 = 0.1
     l_2 = 0.1
 
+    print(
+        f"Initial shapes - V: {V_tns.shape}, W: {W_init_tns.shape}, H: {H_tns.shape}")
+
     # Train the model
-    model, train_cost, test_cost, dnmf_w = train_unsupervised(
-        V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled)
+    model, cost, dnmf_w = train_unsupervised(
+        V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled)
 
     # Calculate error
     reconstructed_V = H_train_tns.mm(dnmf_w)

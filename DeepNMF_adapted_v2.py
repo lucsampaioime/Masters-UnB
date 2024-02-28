@@ -76,113 +76,94 @@ def tensoring(X):
     return torch.from_numpy(X).float()
 
 
-def build_data(V, W, H, TRAIN_SIZE=0.80, index=None):
-    # Split the data into training and testing sets
-    samples = V.shape[1]
-    if index is None:
-        mask = np.random.rand(samples) < TRAIN_SIZE
-    else:
-        mask = index
-
-    V_train = V[:, mask]
-    V_test = V[:, ~mask]
-    H_train = H[:, mask]
-    H_test = H[:, ~mask]
-
-    # Convert numpy arrays to torch tensors
-    V_train_tns = torch.from_numpy(V_train.T).float()
-    V_test_tns = torch.from_numpy(V_test.T).float()
-    H_train_tns = torch.from_numpy(H_train.T).float()
-    H_test_tns = torch.from_numpy(H_test.T).float()
-
-    return V_train, V_test, H_train, H_test, V_train_tns, V_test_tns, H_train_tns, H_test_tns
-
-
-def train_unsupervised(V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_tns, num_layers, network_train_iterations, n_components, features, lr=0.0005, l_1=0, l_2=0, verbose=False, include_reg=True, positive_class_indices=None):
+def build_data(V, H):
     """
-    Train the unsupervised deep NMF model.
+    Prepare the data for NMF model without splitting into training and test sets.
 
     Parameters:
-    - V_train_tns, V_test_tns: Training and testing sets of V (tensor format).
-    - H_train_tns, H_test_tns: Training and testing sets of H (tensor format).
-    - W_init_tns: Initial weights for W (tensor format).
-    - num_layers: Number of layers in the deep NMF network.
-    - network_train_iterations: Number of iterations for training the network.
-    - n_components: Number of components for factorization.
-    - features: Original features length for each sample vector.
-    - lr: Learning rate for the optimizer.
-    - l_1, l_2: Regularization parameters.
-    - verbose: If True, print loss information during training.
-    - include_reg: Include regularization in the model if True.
+    - V: Term-document matrix (numpy array).
+    - H: Initial H matrix (numpy array).
 
     Returns:
-    - deep_nmf: Trained deep NMF model.
-    - dnmf_train_cost: List of training costs.
-    - dnmf_test_cost: List of testing costs.
-    - dnmf_w: Trained weights for W.
+    - V_tns: Term-document matrix as a torch tensor.
+    - H_tns: Initial H matrix as a torch tensor.
     """
+    # Convert numpy arrays to torch tensors
+    V_tns = torch.from_numpy(V.T).float()
+    H_tns = torch.from_numpy(H.T).float()
 
-    # Build the architecture
-    deep_nmf = UnsuperNet(num_layers, n_components, features, l_1, l_2) if include_reg else UnsuperNet(
-        num_layers, n_components, features, 0, 0)
+    return V_tns, H_tns
 
-    # Initialize parameters
-    dnmf_w = W_init_tns.clone()
-    for w in deep_nmf.parameters():
-        w.data.fill_(0.1)
 
-    optimizerADAM = torch.optim.Adam(deep_nmf.parameters(), lr=lr)
+def train_unsupervised(V, W_init, H_init, num_iterations, lr=0.0005, l_1=0, l_2=0, positive_class_indices=None, verbose=False):
+    """
+    Train the unsupervised NMF model with specified initializations and parameters, including a step to emphasize
+    documents belonging to the positive class by setting their corresponding values in H to the highest value observed.
 
-    # Train the Network
-    inputs = (H_train_tns, V_train_tns)
-    test = (H_test_tns, V_test_tns)
-    dnmf_train_cost = []
-    dnmf_test_cost = []
+    Parameters:
+    - V: Input data matrix (torch.Tensor).
+    - W_init: Initial value for W (torch.Tensor).
+    - H_init: Initial value for H (torch.Tensor).
+    - num_iterations: Number of iterations to run the training.
+    - lr: Learning rate for the optimizer.
+    - l_1: L1 regularization parameter.
+    - l_2: L2 regularization parameter.
+    - positive_class_indices: Indices of documents in the positive class.
+    - verbose: If True, print cost at each iteration.
 
-    for i in range(network_train_iterations):
-        out = deep_nmf(*inputs)
-        test_out = deep_nmf(*test)
-        loss = cost_tns(V_train_tns, dnmf_w, out, l_1, l_2)
+    Returns:
+    - W: Updated W matrix.
+    - H: Updated H matrix.
+    - cost_history: List of costs per iteration.
+    """
+    V = V.T.float()
+    W = W_init.T.float()
+    H = H_init.T.float()
 
-        if verbose:
-            print(i, loss.item())
+    cost_history = []
 
-        # Zero the gradients before running the backward pass
+    print(f"Initial shapes - V: {V.shape}, W: {W.shape}, H: {H.shape}")
+
+    for i in range(num_iterations):
+        # Update H using a gradient descent step
+        H.requires_grad_(True)
+        optimizerADAM = torch.optim.Adam([H], lr=lr)
+
         optimizerADAM.zero_grad()
-
-        # Backward pass: compute gradient of the loss with respect to model parameters
-        loss.backward()
-
-        # Perform a single optimization step (parameter update)
+        reconstruction = W @ H
+        if verbose:
+            print(
+                f"Iteration {i} - W: {W.shape}, H: {H.shape}, Reconstruction: {reconstruction.shape}")
+        cost = torch.norm(V - reconstruction, 'fro') + l_1 * \
+            torch.norm(H, 1) + l_2 * torch.norm(H, 2)
+        cost.backward()
         optimizerADAM.step()
 
-        # Keep weights positive after gradient descent
-        for w in deep_nmf.parameters():
-            w.data = w.clamp(min=0)
-
-        h_out = torch.transpose(out.data, 0, 1)
-
-        # Modification: Set the highest value in H for documents belonging to the positive class
+        # After updating H, set the highest value for the positive class if specified
         if positive_class_indices is not None:
-            highest_value = out.data.max().item()  # Find the highest value in H
-
+            highest_value = H.data.max().item()  # Find the highest value in H
             for idx in positive_class_indices:
                 # Set highest value for the positive class
-                out.data[:, idx] = highest_value
+                H.data[:, idx] = highest_value
 
-        # NNLS
-        w_arrays = [nnls(out.data.numpy(), V_train_tns[:, f].numpy())[0]
-                    for f in range(features)]
-        nnls_w = np.stack(w_arrays, axis=-1)
-        dnmf_w = torch.from_numpy(nnls_w).float()
+        # Clamp H to ensure non-negativity
+        H.data = torch.clamp(H.data, min=0)
 
-        dnmf_train_cost.append(loss.item())
+        # Update W using NNLS for each column of V
+        for column in range(V.shape[1]):
+            W[:, column] = torch.from_numpy(
+                nnls(H.detach().numpy().T, V[:, column].numpy())[0]).float()
 
-        # Test performance
-        dnmf_test_cost.append(
-            cost_tns(V_test_tns, dnmf_w, test_out, l_1, l_2).item())
+        cost_history.append(cost.item())
 
-    return deep_nmf, dnmf_train_cost, dnmf_test_cost, dnmf_w
+        if verbose:
+            print(f"Iteration {i+1}/{num_iterations}, Cost: {cost.item()}")
+
+        if i % 10 == 0 and verbose:  # Every 10 iterations, adjust as needed
+            print(
+                f"Iteration {i} - Loss: {loss.item()}, W shape: {W.shape}, H shape: {H.shape}")
+
+    return W, H, cost_history
 
 
 def read_and_process_csv(file_path):
@@ -252,9 +233,8 @@ def main():
     W = np.random.rand(n_features, n_components)
     H = np.random.rand(n_components, n_samples)
 
-    # Prepare data (split and convert to tensors)
-    V_train, V_test, H_train, H_test, V_train_tns, V_test_tns, H_train_tns, H_test_tns = build_data(
-        V, W, H)
+    # Prepare data (convert to tensors without splitting)
+    V_tns, H_tns = build_data(V, H)
 
     # Convert W to tensor
     W_init_tns = torch.from_numpy(W.T).float()
@@ -267,24 +247,22 @@ def main():
     l_2 = 0.1
 
     # Train the model
-    model, train_cost, test_cost, dnmf_w = train_unsupervised(
-        V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled)
+    model, train_cost, dnmf_w = train_unsupervised(
+        V_tns, W_init_tns, H_tns, network_train_iterations, lr, l_1, l_2, labeled, verbose=True)
 
     # Calculate error
-    reconstructed_V = H_train_tns.mm(dnmf_w)
-    error = torch.norm(V_train_tns - reconstructed_V, p='fro').item()
+    reconstructed_V = H_tns.mm(dnmf_w)
+    error = torch.norm(V_tns - reconstructed_V, p='fro').item()
     print("Reconstruction Error:", error)
 
+    # Reverse transpose for compatibility with classification metrics calculations
     V = V.transpose()
-
     W_x = H.transpose()
     H_x = W.transpose()
 
-    # Determina qual tópico é o mais representativo para a classe positiva[usar uma das opções abaixo]
+    # Determine the most representative topic for the positive class
     positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
-    # positive_class_index = 0
-
-    # Calcula as métricas de classificação
+    # Calculate classification metrics
     preds = np.argmax(W_x, axis=1) == positive_class_index
     preds = preds.astype(int)
 
@@ -293,8 +271,8 @@ def main():
         classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
     recall = recall_score(
         classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
-    f1 = f1_score(classes[unlabeled_mask],
-                  preds[unlabeled_mask], average='weighted', zero_division=0)
+    f1 = f1_score(classes[unlabeled_mask], preds[unlabeled_mask],
+                  average='weighted', zero_division=0)
 
     print(
         f"Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
