@@ -125,6 +125,7 @@ def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_itera
 
     for i in range(network_train_iterations):
         out = deep_nmf(*inputs)
+        print(f" W: {dnmf_w.shape}, H: {out.shape}, V: {V_tns.shape}")
         loss = cost_tns(V_tns, dnmf_w, out, l_1, l_2)
 
         if verbose:
@@ -163,7 +164,7 @@ def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_itera
 
         # Test performance
         dnmf_cost.append(
-            cost_tns(V_tns, dnmf_w, h_out, l_1, l_2).item())
+            cost_tns(V_tns, dnmf_w, out, l_1, l_2).item())
 
     return deep_nmf, dnmf_cost, dnmf_w
 
@@ -256,8 +257,8 @@ def main():
         V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled)
 
     # Calculate error
-    reconstructed_V = H_train_tns.mm(dnmf_w)
-    error = torch.norm(V_train_tns - reconstructed_V, p='fro').item()
+    reconstructed_V = H_tns.mm(dnmf_w)
+    error = torch.norm(V_tns - reconstructed_V, p='fro').item()
     print("Reconstruction Error:", error)
 
     V = V.transpose()
