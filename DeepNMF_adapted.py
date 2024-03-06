@@ -147,7 +147,7 @@ def train_unsupervised(V_train_tns, V_test_tns, H_train_tns, H_test_tns, W_init_
         if verbose:
             print(i, loss.item())
 
-        # Zero the gradients before running the backward pass
+        # Zero the gradients before running the backward pass.
         optimizerADAM.zero_grad()
 
         # Backward pass: compute gradient of the loss with respect to model parameters
