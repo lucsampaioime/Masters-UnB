@@ -221,7 +221,7 @@ def main():
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 10  # Or get this from user input.
+    n_labeled = 5  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
@@ -252,7 +252,7 @@ def main():
     print(
         f"Initial shapes - V: {V_tns.shape}, W: {W_init_tns.shape}, H: {H_tns.shape}")
 
-    # Train the model.
+    # Train the model
     model, cost, dnmf_w = train_unsupervised(
         V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled)
 
