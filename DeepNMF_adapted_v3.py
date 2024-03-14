@@ -215,7 +215,7 @@ def predict_classes(reconstructed_V, threshold=0.5):
 
 
 def main():
-    # Path to your CSV file
+    # Path to your CSV file,
     file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/CSTR.csv'
     V, classes = read_and_process_csv(file_path)
 
