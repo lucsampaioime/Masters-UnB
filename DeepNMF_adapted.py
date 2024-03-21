@@ -244,7 +244,7 @@ def main():
     print("Positive Class Selected:", positive_class)
 
     n_samples, n_features = V.shape
-    n_components = 30  # You can define this parameter based on your needs
+    n_components = 50  # You can define this parameter based on your needs
 
     V = V.transpose()
 
