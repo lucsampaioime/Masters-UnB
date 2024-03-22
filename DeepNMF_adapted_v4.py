@@ -166,7 +166,7 @@ def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_itera
         dnmf_cost.append(
             cost_tns(V_tns, dnmf_w, out, l_1, l_2).item())
 
-    return deep_nmf, dnmf_cost, dnmf_w
+    return deep_nmf, dnmf_cost, dnmf_w, out
 
 
 def read_and_process_csv(file_path):
@@ -221,14 +221,14 @@ def main():
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 1  # Or get this from user input.
+    n_labeled = 30  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
     print("Positive Class Selected:", positive_class)
 
     n_samples, n_features = V.shape
-    n_components = 30  # You can define this based on your needs
+    n_components = 50  # You can define this based on your needs
 
     V = V.transpose()
 
@@ -253,7 +253,7 @@ def main():
         f"Initial shapes - V: {V_tns.shape}, W: {W_init_tns.shape}, H: {H_tns.shape}")
 
     # Train the model
-    model, cost, dnmf_w = train_unsupervised(
+    model, cost, dnmf_w, final_H = train_unsupervised(
         V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled)
 
     # Calculate error
@@ -270,8 +270,11 @@ def main():
     positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
     # positive_class_index = 0
 
-    # Calcula as métricas de classificação
-    preds = np.argmax(W_x, axis=1) == positive_class_index
+    # Convert final_H to a NumPy Array
+    final_H_np = final_H.cpu().detach().numpy()
+
+    # Calculate the classification metrics
+    preds = np.argmax(final_H_np, axis=1) == positive_class_index
     preds = preds.astype(int)
 
     accuracy = accuracy_score(classes[unlabeled_mask], preds[unlabeled_mask])
