@@ -232,7 +232,7 @@ def predict_classes(reconstructed_V, threshold=0.5):
 
 def main():
     # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/CSTR.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr11.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
@@ -244,7 +244,7 @@ def main():
     print("Positive Class Selected:", positive_class)
 
     n_samples, n_features = V.shape
-    n_components = 50  # You can define this parameter based on your needs
+    n_components = 30  # You can define this parameter based on your needs
 
     V = V.transpose()
 

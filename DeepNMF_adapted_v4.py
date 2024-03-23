@@ -146,13 +146,20 @@ def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_itera
 
         h_out = torch.transpose(out.data, 0, 1)
 
+        # Assuming out.data is of shape [features, samples] and idx are sample indices
+        valid_indices = [
+            i for i in positive_class_indices if i < out.data.shape[1]]
+
         # Modification: Set the highest value in H for documents belonging to the positive class
         if positive_class_indices is not None:
             highest_value = out.data.max().item()  # Find the highest value in H
 
-            for idx in positive_class_indices:
+            for i in valid_indices:
+                # Assuming you're modifying the entire feature/component vector for each valid sample
+                out.data[:, i] = highest_value
+            # for idx in positive_class_indices:
                 # Set highest value for the positive class
-                out.data[:, idx] = highest_value
+            #    out.data[:, idx] = highest_value
 
         # NNLS
         w_arrays = [nnls(out.data.numpy(), V_tns[:, f].numpy())[0]
@@ -279,11 +286,11 @@ def main():
 
     accuracy = accuracy_score(classes[unlabeled_mask], preds[unlabeled_mask])
     precision = precision_score(
-        classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
+        classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
     recall = recall_score(
-        classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
+        classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
     f1 = f1_score(classes[unlabeled_mask],
-                  preds[unlabeled_mask], average='weighted', zero_division=0)
+                  preds[unlabeled_mask], average='macro', zero_division=0)
 
     print(
         f"Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
