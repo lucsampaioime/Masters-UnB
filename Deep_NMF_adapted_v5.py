@@ -223,12 +223,12 @@ def predict_classes(reconstructed_V, threshold=0.5):
 
 def main():
     # Path to your CSV file,
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/Fbis.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/CSTR.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 30  # Or get this from user input.
+    n_labeled = 5  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
@@ -251,16 +251,13 @@ def main():
 
     # Parameters for the training
     num_layers = 5
-    network_train_iterations = 1
+    network_train_iterations = 10
     lr = 0.001
     l_1 = 0.1
     l_2 = 0.1
 
     print(
-        f"Initial shapes - V_tns: {V_tns.shape}, W_tns: {W_init_tns.shape}, H_tns: {H_tns.shape}")
-
-    print(
-        f"Initial shapes - V: {V.shape}, W: {W.shape}, H: {H.shape}")
+        f"Initial shapes - V: {V_tns.shape}, W: {W_init_tns.shape}, H: {H_tns.shape}")
 
     # Train the model
     model, cost, dnmf_w, final_H = train_unsupervised(
@@ -276,25 +273,12 @@ def main():
     W_x = H.transpose()
     H_x = W.transpose()
 
-    print(
-        f"Intermediate shapes - V: {V.shape}, W_x: {W.shape}, H_x: {H.shape}")
-
-    print(
-        f"W final: {dnmf_w.shape}, ")
-    print(
-        f"W_x: {W_x.shape}, ")
-
-    final_W = dnmf_w.cpu().detach().numpy().T
+    # Determina qual tópico é o mais representativo para a classe positiva[usar uma das opções abaixo]
+    positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
+    # positive_class_index = 0
 
     # Convert final_H to a NumPy Array
     final_H_np = final_H.cpu().detach().numpy()
-
-    print(
-        f"final_H_np: {final_H_np.shape}, ")
-
-    # Determina qual tópico é o mais representativo para a classe positiva[usar uma das opções abaixo]
-    positive_class_index = np.argmax(np.sum(final_H_np[classes == 1], axis=0))
-    # positive_class_index = 0
 
     # Calculate the classification metrics
     preds = np.argmax(final_H_np, axis=1) == positive_class_index
@@ -302,11 +286,11 @@ def main():
 
     accuracy = accuracy_score(classes[unlabeled_mask], preds[unlabeled_mask])
     precision = precision_score(
-        classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
+        classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
     recall = recall_score(
-        classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
+        classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
     f1 = f1_score(classes[unlabeled_mask],
-                  preds[unlabeled_mask], average='micro', zero_division=0)
+                  preds[unlabeled_mask], average='macro', zero_division=0)
 
     print(
         f"Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
