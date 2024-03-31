@@ -216,7 +216,7 @@ def predict_classes(reconstructed_V, threshold=0.5):
 
 def main():
     # Path to your CSV file,
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/Fbis.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/CSTR.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
@@ -228,7 +228,7 @@ def main():
     print("Positive Class Selected:", positive_class)
 
     n_samples, n_features = V.shape
-    n_components = 30  # You can define this based on your needs
+    n_components = 50  # You can define this based on your needs
 
     V = V.transpose()
 
@@ -276,11 +276,11 @@ def main():
 
     accuracy = accuracy_score(classes[unlabeled_mask], preds[unlabeled_mask])
     precision = precision_score(
-        classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
+        classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
     recall = recall_score(
-        classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
+        classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
     f1 = f1_score(classes[unlabeled_mask],
-                  preds[unlabeled_mask], average='weighted', zero_division=0)
+                  preds[unlabeled_mask], average='micro', zero_division=0)
 
     print(
         f"Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
