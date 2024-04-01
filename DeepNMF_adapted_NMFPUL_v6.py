@@ -227,10 +227,10 @@ def predict_classes(reconstructed_V, threshold=0.5):
     return predictions
 
 
-def nmf_with_update(V, n_topics, n_labeled, max_iter, tol):
+def nmf_with_update(V, n_topics, n_labeled, max_iter, tol, W, H):
 
     # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/Fbis.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr12.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Rotula uma quantidade n_labeled de documentos da classe positiva
@@ -240,17 +240,20 @@ def nmf_with_update(V, n_topics, n_labeled, max_iter, tol):
     unlabeled = positive_indexes[n_labeled:]
 
     # Inicializa as matrizes W e H
-    W = np.random.rand(V.shape[0], n_topics)
-    H = np.random.rand(n_topics, V.shape[1])
+    # W = np.random.rand(V.shape[0], n_topics)
+    # H = np.random.rand(n_topics, V.shape[1])
 
     # Determina qual tópico é o mais representativo para a classe positiva [usar uma das opções abaixo]
-    # positive_class_index = np.argmax(np.sum(W[classes == 1], axis=0))
-    positive_class_index = 0
+    positive_class_index = np.argmax(np.sum(W[classes == 1], axis=0))
+    # positive_class_index = 0
 
     # Cria máscaras booleanas para os documentos rotulados e não rotulados
     labeled_mask = np.zeros(len(classes), dtype=bool)
     labeled_mask[labeled] = True
     unlabeled_mask = ~labeled_mask
+
+    print(
+        f"NMF shapes - V: {V.shape}, W_x: {W.shape}, final_H_np: {H.shape}")
 
     for n in range(max_iter):
         # Atualiza as matrizes W e H - Euclidian
@@ -309,7 +312,7 @@ def nmf_with_update(V, n_topics, n_labeled, max_iter, tol):
 def main():
 
     # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/CSTR.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr12.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
@@ -337,7 +340,7 @@ def main():
 
     # Parameters for the training
     num_layers = 5
-    network_train_iterations = 10
+    network_train_iterations = 100
     lr = 0.001
     l_1 = 0.1
     l_2 = 0.1
@@ -360,13 +363,14 @@ def main():
     H_x = W.transpose()
 
     # Determina qual tópico é o mais representativo para a classe positiva[usar uma das opções abaixo]
-    positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
+    # positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
     # positive_class_index = 0
 
     # Convert final_H to a NumPy Array
     final_H_np = final_H.cpu().detach().numpy()
 
-    nmf_with_update(reconstructed_V, n_components, n_labeled, 30, 1e-4)
+    nmf_with_update(reconstructed_V, n_components,
+                    n_labeled, 30, 1e-4, final_H_np, H_x)
 
     # Calcula a média e o desvio-padrão das métricas
     accuracy_mean, accuracy_std = np.mean(
