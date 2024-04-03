@@ -230,7 +230,7 @@ def predict_classes(reconstructed_V, threshold=0.5):
 def nmf_with_update(V, n_topics, n_labeled, max_iter, tol, W, H):
 
     # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/re1.mat.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr11.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Rotula uma quantidade n_labeled de documentos da classe positiva
@@ -312,12 +312,12 @@ def nmf_with_update(V, n_topics, n_labeled, max_iter, tol, W, H):
 def main():
 
     # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/re1.mat.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr11.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 1  # Or get this from user input.
+    n_labeled = 30     # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
