@@ -14,12 +14,6 @@ import random
 from scipy.optimize import nnls
 EPSILON = np.finfo(np.float32).eps
 
-# Inicializa listas para armazenar os valores das métricas
-accuracy_values = []
-precision_values = []
-recall_values = []
-f1_values = []
-
 
 class UnsuperLayer(nn.Module):
     """
@@ -227,104 +221,21 @@ def predict_classes(reconstructed_V, threshold=0.5):
     return predictions
 
 
-def nmf_with_update(V, n_topics, n_labeled, max_iter, tol, W, H):
-
-    # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr41.mat.csv'
-    V, classes = read_and_process_csv(file_path)
-
-    # Rotula uma quantidade n_labeled de documentos da classe positiva
-    positive_indexes = np.where(classes == 1)[0]
-    # np.random.shuffle(positive_indexes)
-    labeled = positive_indexes[:n_labeled]
-    unlabeled = positive_indexes[n_labeled:]
-
-    # Inicializa as matrizes W e H
-    # W = np.random.rand(V.shape[0], n_topics)
-    # H = np.random.rand(n_topics, V.shape[1])
-
-    # Determina qual tópico é o mais representativo para a classe positiva [usar uma das opções abaixo]
-    positive_class_index = np.argmax(np.sum(W[classes == 1], axis=0))
-    # positive_class_index = 0
-
-    # Cria máscaras booleanas para os documentos rotulados e não rotulados
-    labeled_mask = np.zeros(len(classes), dtype=bool)
-    labeled_mask[labeled] = True
-    unlabeled_mask = ~labeled_mask
-
-    print(
-        f"NMF shapes - V: {V.shape}, W_x: {W.shape}, final_H_np: {H.shape}")
-
-    for n in range(max_iter):
-        # Atualiza as matrizes W e H - Euclidian
-        # W *= (V @ H.T) / (W @ (H @ H.T) + np.finfo(float).eps)
-        # H *= (W.T @ V) / ((W.T @ W) @ H + np.finfo(float).eps)
-
-        # Atualiza as matrizes W e H - KL
-        W *= (V @ H.T) / (W @ H @ H.T + 1e-10)
-        H *= (W.T @ V) / (W.T @ W @ H + 1e-10)
-
-        # Aplique a função 'Supress'
-        W[labeled, 0] = np.max(W)
-        W[labeled, 1:] = 0.001
-
-        # Calcula a norma euclidiana entre V e WH
-        # error = np.linalg.norm(V - W @ H)
-
-        # Calcula a divergencia KL entre V e WH
-        eps = 1e-10  # small constant to avoid division by zero
-        V = np.maximum(V, eps)
-        W_H = np.maximum(W @ H, eps)
-        error = np.sum(V * np.log(V / W_H) - V + W_H)
-
-        # Se o erro for menor que a tolerância, para o processo
-        if error < tol:
-            break
-
-        # Calcula as métricas de classificação
-        preds = np.argmax(W, axis=1) == positive_class_index
-        preds = preds.astype(int)
-
-        accuracy = accuracy_score(
-            classes[unlabeled_mask], preds[unlabeled_mask])
-        precision = precision_score(
-            classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
-        recall = recall_score(
-            classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
-        f1 = f1_score(classes[unlabeled_mask],
-                      preds[unlabeled_mask], average='micro', zero_division=0)
-
-    global global_n_topics
-    global_n_topics = n_topics
-
-    global global_n_labeled
-    global_n_labeled = n_labeled
-
-    # Armazena os valores das métricas
-    accuracy_values.append(accuracy)
-    precision_values.append(precision)
-    recall_values.append(recall)
-    f1_values.append(f1)
-
-    return W, H
-
-
 def main():
-
-    # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr41.mat.csv'
+    # Path to your CSV file,
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr21.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 30    # Or get this from user input.
+    n_labeled = 30  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
     print("Positive Class Selected:", positive_class)
 
     n_samples, n_features = V.shape
-    n_components = 30  # You can define this based on your needs for the number of components
+    n_components = 30  # You can define this based on your needs
 
     V = V.transpose()
 
@@ -340,7 +251,7 @@ def main():
 
     # Parameters for the training
     num_layers = 5
-    network_train_iterations = 100
+    network_train_iterations = 10
     lr = 0.001
     l_1 = 0.1
     l_2 = 0.1
@@ -363,29 +274,26 @@ def main():
     H_x = W.transpose()
 
     # Determina qual tópico é o mais representativo para a classe positiva[usar uma das opções abaixo]
-    # positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
+    positive_class_index = np.argmax(np.sum(W_x[classes == 1], axis=0))
     # positive_class_index = 0
 
     # Convert final_H to a NumPy Array
     final_H_np = final_H.cpu().detach().numpy()
 
-    nmf_with_update(reconstructed_V, n_components,
-                    n_labeled, 30, 1e-4, final_H_np, H_x)
+    # Calculate the classification metrics
+    preds = np.argmax(final_H_np, axis=1) == positive_class_index
+    preds = preds.astype(int)
 
-    # Calcula a média e o desvio-padrão das métricas
-    accuracy_mean, accuracy_std = np.mean(
-        accuracy_values), np.std(accuracy_values)
-    precision_mean, precision_std = np.mean(
-        precision_values), np.std(precision_values)
-    recall_mean, recall_std = np.mean(recall_values), np.std(recall_values)
-    f1_mean, f1_std = np.mean(f1_values), np.std(f1_values)
+    accuracy = accuracy_score(classes[unlabeled_mask], preds[unlabeled_mask])
+    precision = precision_score(
+        classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
+    recall = recall_score(
+        classes[unlabeled_mask], preds[unlabeled_mask], average='micro', zero_division=0)
+    f1 = f1_score(classes[unlabeled_mask],
+                  preds[unlabeled_mask], average='micro', zero_division=0)
 
     print(
-        f"Média e desvio padrão da acurácia: {accuracy_mean}, {accuracy_std}")
-    print(
-        f"Média e desvio padrão da precisão: {precision_mean}, {precision_std}")
-    print(f"Média e desvio padrão do recall: {recall_mean}, {recall_std}")
-    print(f"Média e desvio padrão do F1 score: {f1_mean}, {f1_std}")
+        f"Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
 
 
 if __name__ == "__main__":

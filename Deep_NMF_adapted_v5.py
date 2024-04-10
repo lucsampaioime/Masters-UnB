@@ -146,7 +146,8 @@ def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_itera
 
         h_out = torch.transpose(out.data, 0, 1)
 
-        # Assuming out.data is of shape [features, samples] and idx are sample indices
+        # Assuming out.data is of shape [samples, components] and idx are sample indices
+        print(f"out: {out.shape}, out.data: {out.data.shape}")
         valid_indices = [
             i for i in positive_class_indices if i < out.data.shape[1]]
 
@@ -251,7 +252,7 @@ def main():
 
     # Parameters for the training
     num_layers = 5
-    network_train_iterations = 10
+    network_train_iterations = 100
     lr = 0.001
     l_1 = 0.1
     l_2 = 0.1
