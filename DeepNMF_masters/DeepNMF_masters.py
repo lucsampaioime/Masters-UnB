@@ -223,7 +223,7 @@ def main():
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 20  # Or get this from user input.
+    n_labeled = 30  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
