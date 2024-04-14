@@ -55,7 +55,7 @@ class UnsuperNet(nn.Module):
         )
 
     def forward(self, h, x):
-        # sequencing the layers and forward pass through the network
+        # sequencing the layers and forward pass through the network.
         for i, l in enumerate(self.deep_nmfs):
             h = l(h, x)
         return h
