@@ -57,7 +57,7 @@ class UnsuperNet(nn.Module):
 
 
 def cost_tns(v, w, h, l_1=0, l_2=0):
-    # util.cost_tns(data.v_train.tns,data.w.tns,data.h_train.tns)-
+    # util.cost_tns(data.v_train.tns,data.w.tns,data.h_train.tns)
     d = v - h.mm(w)
     return (
         0.5 * torch.pow(d, 2).sum()
