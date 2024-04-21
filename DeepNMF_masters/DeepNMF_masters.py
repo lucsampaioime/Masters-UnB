@@ -221,7 +221,7 @@ def main():
     file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr21.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
-    # Ensuring the number of documents matches the number of class labels.
+    # Ensuring the number of documents matches the number of class labels
 
     n_labeled = 20  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
