@@ -246,7 +246,7 @@ def main():
 
     # Parameters for the training
     num_layers = 5
-    network_train_iterations = 10
+    network_train_iterations = 20
     lr = 0.001
     l_1 = 0.1
     l_2 = 0.1
