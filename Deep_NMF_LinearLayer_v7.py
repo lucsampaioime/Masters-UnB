@@ -57,7 +57,7 @@ class UnsuperNet(nn.Module):
 
 
 def cost_tns(v, w, h, l_1=0, l_2=0):
-    # util.cost_tns(data.v_train.tns,data.w.tns,data.h_train.tns)
+    # util.cost_tns(data.v_train.tns,data.w.tns,data.h_train.tns) -
     d = v - h.mm(w)
     return (
         0.5 * torch.pow(d, 2).sum()
@@ -186,7 +186,7 @@ def main():
 
     n_samples, n_features = V.shape
     n_components = 30  # Ajuste conforme necessário
-    n_classes = len(np.unique(classes))  # Número de classes únicas
+    n_classes = len(np.unique(classes))  # Número de classes únicas no modelo
 
     # Define o número de documentos rotulados da classe positiva
     n_labeled = 30
