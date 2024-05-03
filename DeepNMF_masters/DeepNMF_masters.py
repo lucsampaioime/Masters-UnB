@@ -218,12 +218,12 @@ def predict_classes(reconstructed_V, threshold=0.5):
 
 def main():
     # Path to the CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/tr21.mat.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/wap.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
 
-    n_labeled = 5  # Or get this from user input.
+    n_labeled = 30  # Or get this from user input.
     labeled_mask, unlabeled_mask, labeled, positive_class = label_documents(
         classes, n_labeled)
 
@@ -247,7 +247,7 @@ def main():
 
     # Parameters for the training
     num_layers = 5
-    network_train_iterations = 20
+    network_train_iterations = 100
     lr = 0.001
     l_1 = 0.1
     l_2 = 0.1
