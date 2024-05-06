@@ -62,14 +62,26 @@ class UnsuperNet(nn.Module):
         return h
 
 
-def cost_tns(v, w, h, l_1=0, l_2=0):
-    # util.cost_tns(data.v_train.tns,data.w.tns,data.h_train.tns)
+def cost_tns(v, w, h, l_1=0, l_2=0, labeled_mask=None, labeled_indices=None, labeled_weight=1.0, unlabeled_weight=1.0):
+    # Calculate reconstruction error
     d = v - h.mm(w)
-    return (
-        0.5 * torch.pow(d, 2).sum()
-        + l_1 * h.sum()
-        + 0.5 * l_2 * torch.pow(h, 2).sum()
-    )/h.shape[0]
+    reconstruction_error = 0.5 * torch.pow(d, 2).sum()
+
+    # Compute regularization terms
+    l1_term = l_1 * h.sum()
+    l2_term = 0.5 * l_2 * torch.pow(h, 2).sum()
+
+    # Combine terms with different weights for labeled and unlabeled documents
+    cost = (labeled_weight * reconstruction_error +
+            l1_term + l2_term) / h.shape[0]
+
+    # Optionally, you can add another term to penalize deviation from labeled data
+    if labeled_mask is not None and labeled_indices is not None:
+        labeled_error = torch.pow(
+            h[:, labeled_indices][labeled_mask, :] - v[:, labeled_indices][labeled_mask, :], 2).sum()
+        cost += labeled_weight * labeled_error / h.shape[0]
+
+    return cost
 
 
 def tensoring(X):
@@ -85,7 +97,7 @@ def build_data(V, H):
     return V_tns, H_tns
 
 
-def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, features, lr=0.0005, l_1=0, l_2=0, verbose=False, include_reg=True, positive_class_indices=None):
+def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, features, lr=0.0005, l_1=0, l_2=0, verbose=False, include_reg=True, positive_class_indices=None, labeled_mask=None, labeled=None):
     """
     Train the unsupervised deep NMF model.
 
@@ -124,8 +136,9 @@ def train_unsupervised(V_tns, H_tns, W_init_tns, num_layers, network_train_itera
 
     for i in range(network_train_iterations):
         out = deep_nmf(*inputs)
-        # print(f" W: {dnmf_w.shape}, H: {out.shape}, V: {V_tns.shape}")
-        loss = cost_tns(V_tns, dnmf_w, out, l_1, l_2)
+        print(f" W: {dnmf_w.shape}, H: {out.shape}, V: {V_tns.shape}")
+        loss = cost_tns(V_tns, dnmf_w, out, l_1, l_2, labeled_mask,
+                        labeled, labeled_weight=1.0, unlabeled_weight=1.0)
 
         if verbose:
             print(i, loss.item())
@@ -247,7 +260,7 @@ def main():
     W_init_tns = torch.from_numpy(W.T).float()
 
     # Parameters for the training
-    num_layers = 200
+    num_layers = 5
     network_train_iterations = 100
     lr = 0.001
     l_1 = 0.1
@@ -258,7 +271,7 @@ def main():
 
     # Train the model
     model, cost, dnmf_w, final_H = train_unsupervised(
-        V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled)
+        V_tns, H_tns, W_init_tns, num_layers, network_train_iterations, n_components, n_features, lr, l_1, l_2, verbose=True, positive_class_indices=labeled, labeled_mask=labeled_mask, labeled=labeled)
 
     # Calculate error
     reconstructed_V = H_tns.mm(dnmf_w)
