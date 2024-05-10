@@ -247,8 +247,8 @@ def main():
     W_init_tns = torch.from_numpy(W.T).float()
 
     # Parameters for the training
-    num_layers = 200
-    network_train_iterations = 100
+    num_layers = 100
+    network_train_iterations = 20
     lr = 0.001
     l_1 = 0.1
     l_2 = 0.1

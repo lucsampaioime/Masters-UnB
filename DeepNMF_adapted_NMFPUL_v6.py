@@ -230,7 +230,7 @@ def predict_classes(reconstructed_V, threshold=0.5):
 def nmf_with_update(V, n_topics, n_labeled, max_iter, tol, W, H):
 
     # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/wap.mat.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/oh0.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Rotula uma quantidade n_labeled de documentos da classe positiva
@@ -312,7 +312,7 @@ def nmf_with_update(V, n_topics, n_labeled, max_iter, tol, W, H):
 def main():
 
     # Path to your CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/wap.mat.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/oh0.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Ensuring the number of documents matches the number of class labels
@@ -339,7 +339,7 @@ def main():
     W_init_tns = torch.from_numpy(W.T).float()
 
     # Parameters for the training
-    num_layers = 5
+    num_layers = 50
     network_train_iterations = 100
     lr = 0.001
     l_1 = 0.1
