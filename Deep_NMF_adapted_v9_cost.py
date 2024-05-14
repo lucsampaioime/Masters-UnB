@@ -63,6 +63,7 @@ class UnsuperNet(nn.Module):
 
 
 def cost_tns(v, w, h, l_1=0, l_2=0, labeled_mask=None, labeled_indices=None, labeled_weight=1.0, unlabeled_weight=1.0):
+   
     # Calculate reconstruction error
     d = v - h.mm(w)
     reconstruction_error = 0.5 * torch.pow(d, 2).sum()
