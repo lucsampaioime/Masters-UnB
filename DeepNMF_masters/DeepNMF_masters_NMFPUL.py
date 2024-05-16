@@ -245,6 +245,8 @@ def nmf_with_update(V, W, H, n_topics, n_labeled, max_iter, tol, classes):
     labeled_mask[labeled] = True
     unlabeled_mask = ~labeled_mask
 
+    previous_error = float('inf')
+
     for n in range(max_iter):
         # Atualiza as matrizes W e H - Euclidian
         # W *= (V @ H.T) / (W @ (H @ H.T) + np.finfo(float).eps)
@@ -265,11 +267,15 @@ def nmf_with_update(V, W, H, n_topics, n_labeled, max_iter, tol, classes):
         eps = 1e-10  # small constant to avoid division by zero
         V = np.maximum(V, eps)
         W_H = np.maximum(W @ H, eps)
-        error = np.sum(V * np.log(V / W_H) - V + W_H)
+        current_error = np.sum(V * np.log(V / W_H) - V + W_H)
+        # print(f"Error: {current_error} at iteration {n}")
 
         # Se o erro for menor que a tolerância, para o processo
-        if error < tol:
+        if current_error < tol or abs(previous_error - current_error) < tol:
             break
+
+        # Update previous error for next iteration comparison
+        previous_error = current_error
 
         # Calcula as métricas de classificação
         preds = np.argmax(W, axis=1) == positive_class_index
@@ -278,11 +284,11 @@ def nmf_with_update(V, W, H, n_topics, n_labeled, max_iter, tol, classes):
         accuracy = accuracy_score(
             classes[unlabeled_mask], preds[unlabeled_mask])
         precision = precision_score(
-            classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
+            classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
         recall = recall_score(
-            classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
+            classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
         f1 = f1_score(classes[unlabeled_mask],
-                      preds[unlabeled_mask], average='weighted', zero_division=0)
+                      preds[unlabeled_mask], average='macro', zero_division=0)
         cm = confusion_matrix(classes[unlabeled_mask], preds[unlabeled_mask])
 
     global global_n_topics
@@ -297,13 +303,13 @@ def nmf_with_update(V, W, H, n_topics, n_labeled, max_iter, tol, classes):
     recall_values.append(recall)
     f1_values.append(f1)
 
-    return W, H
+    return W, H, n
 
 
 def main():
 
     # Path to the CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/CSTR.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/Re1.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Defines the dimensions of the V matrix (samples x words)
@@ -354,7 +360,9 @@ def main():
     for x in range(10):
 
         # nmf_with_update(matrix V,  matrix W, matriz H, n_topics, n_labeled, max_iter, tol, classes)
-        nmf_with_update(V, final_W, final_H, 30, 30, 30, 1e-4, classes)
+        W_k, H_k, iteration_stopped = nmf_with_update(
+            V, final_W, final_H, 30, 30, 100, 1e-3, classes)
+        print(f"Stopped at iteration: {iteration_stopped}")
 
     # Calcula a média e o desvio-padrão das métricas
     accuracy_mean, accuracy_std = np.mean(
