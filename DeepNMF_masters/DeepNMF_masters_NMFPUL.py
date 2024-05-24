@@ -284,11 +284,11 @@ def nmf_with_update(V, W, H, n_topics, n_labeled, max_iter, tol, classes):
         accuracy = accuracy_score(
             classes[unlabeled_mask], preds[unlabeled_mask])
         precision = precision_score(
-            classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
+            classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
         recall = recall_score(
-            classes[unlabeled_mask], preds[unlabeled_mask], average='macro', zero_division=0)
+            classes[unlabeled_mask], preds[unlabeled_mask], average='weighted', zero_division=0)
         f1 = f1_score(classes[unlabeled_mask],
-                      preds[unlabeled_mask], average='macro', zero_division=0)
+                      preds[unlabeled_mask], average='weighted', zero_division=0)
         cm = confusion_matrix(classes[unlabeled_mask], preds[unlabeled_mask])
 
     global global_n_topics
@@ -309,7 +309,7 @@ def nmf_with_update(V, W, H, n_topics, n_labeled, max_iter, tol, classes):
 def main():
 
     # Path to the CSV file
-    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/Re1.mat.csv'
+    file_path = 'C:/Users/lucsa/Dropbox/Data Science/Mestrado UNB/Dissertação/Experimentos/Testes/Deep NMF/Datasets/wap.mat.csv'
     V, classes = read_and_process_csv(file_path)
 
     # Defines the dimensions of the V matrix (samples x words)
